@@ -1,4 +1,14 @@
-FROM alpine
+# syntax=docker/dockerfile:1
 
-# STEP4-4では以下は変更しない
-CMD ["python", "-V"]
+FROM python:3
+
+WORKDIR /app
+
+COPY python/requirements.txt python/requirements.txt
+RUN pip3 install -r python/requirements.txt
+
+COPY . .
+
+WORKDIR python
+
+CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000" ]
