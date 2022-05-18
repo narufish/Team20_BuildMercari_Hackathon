@@ -6,7 +6,7 @@ import json
 import sqlite3
 import hashlib
 import sys
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -70,24 +70,27 @@ def get_items_list():
 
 # POST Items endpoint - Add single item to SQLite3 database
 @app.post('/items')
-def add_item(name: str = Form(...), category: str = Form(...), image: str = Form(...)):
+async def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)):
     logger.info(f"Receive item: {name}, category: {category}")
     
     # Raise exception if image file extension is not .jpg
-    if not image.endswith(".jpg"):
-        raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
+    if not image.filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image filename does not end with .jpg")
     
-    # Hash image at provided path using SHA-256
-    with open(image, "rb") as image_binary:
-        bytes = image_binary.read()
-        image_hash = hashlib.sha256(bytes).hexdigest()
-        image_binary.close()
+### Deprecated - Filename should be hashed, not image binary.
+#   # Hash image at provided path using SHA-256
+#    with open(image.filename, "rb") as image_binary:
+#        bytes = image_binary.read()
+#        image_hash = hashlib.sha256(bytes).hexdigest()
+#        image_binary.close()
         
-    # Save image with hash as filename in ../db/images
+    # Save image with hashed filename in ../db/images
     # Use creation mode to avoid overwriting existing copies of same image
     try:
-        db_image = open(f'../db/images/{image_hash}.jpg', "xb")
-        db_image.write(bytes)
+        image_binary = await image.file.read()
+        filename_hash = hashlib.sha256(image.filename).hexdigest()
+        db_image = open(f'../db/images/{filename_hash}.jpg', "xb")
+        db_image.write(image_binary)
         db_image.close()
     except:
         logger.info("New image could not be created:", sys.exc_info()[0])
@@ -100,7 +103,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
     if cat_id is None:
         cur.execute("INSERT INTO Categories VALUES (null, ?)", (category,))
         cat_id = cur.execute("SELECT id FROM Categories WHERE name = ?", (category,)).fetchone()
-    cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], image_hash + ".jpg"))
+    cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], filename_hash + ".jpg"))
     con.commit()
     con.close()
     
