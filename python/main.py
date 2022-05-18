@@ -77,19 +77,21 @@ async def add_item(name: str = Form(...), category: str = Form(...), image: Uplo
     if not image.filename.endswith(".jpg"):
         raise HTTPException(status_code=400, detail="Image filename does not end with .jpg")
     
-### Deprecated - Filename should be hashed, not image binary.
-#   # Hash image at provided path using SHA-256
-#    with open(image.filename, "rb") as image_binary:
-#        bytes = image_binary.read()
-#        image_hash = hashlib.sha256(bytes).hexdigest()
-#        image_binary.close()
+    image_title = image.filename.split(".")[0].encode()
+    filename_hash = hashlib.sha256(image_title).hexdigest()
+    
+    ### Deprecated - Filename should be hashed, not image binary.
+    #   # Hash image at provided path using SHA-256
+    #    with open(image.filename, "rb") as image_binary:
+    #        bytes = image_binary.read()
+    #        image_hash = hashlib.sha256(bytes).hexdigest()
+    #        image_binary.close()
         
     # Save image with hashed filename in ../db/images
     # Use creation mode to avoid overwriting existing copies of same image
     try:
-        image_binary = await image.file.read()
-        filename_hash = hashlib.sha256(image.filename).hexdigest()
-        db_image = open(f'../db/images/{filename_hash}.jpg', "xb")
+        image_binary = image.file.read()
+        db_image = open(f'images/{filename_hash}.jpg', "xb")
         db_image.write(image_binary)
         db_image.close()
     except:
