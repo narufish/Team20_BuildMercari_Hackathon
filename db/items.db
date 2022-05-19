@@ -1,1 +1,2 @@
-CREATE TABLE Items (id INTEGER PRIMARY KEY, name TEXT, category TEXT, image TEXT);
+CREATE TABLE Categories (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE Items (id INTEGER PRIMARY KEY, name TEXT, category_id INT, image_filename TEXT);

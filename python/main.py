@@ -1,6 +1,7 @@
 import os
 import logging
 import pathlib
+from pathlib import Path
 import json
 import sqlite3
 import hashlib
@@ -22,6 +23,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+## WIP
+## Check if database file exists - if not, create file based on schema.
+db_path = Path('../db/mercari.sqlite3')
+#if not db_path.is_file():
+#    db_schema = Path('../db/items.db')
+#    conn = sqlite3.connect(db_schema)
+#    with open('../db/mercari.sqlite3', "w") as new_db:
+#        for line in conn.iterdump():
+#            new_db.write("%s\n" % line)
+#    conn.close()
+
 @app.get('/')
 def root():
     return {"message": "Hello, world!"}
@@ -31,18 +43,21 @@ def root():
 def get_items_list():
 
     # Connect to database and fetch all items
-    con = sqlite3.connect('../db/mercari.sqlite3')
+    con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    # Use * to allow for schema changes (Not safe to add sensitive data to schema)
-    rows = cur.execute("SELECT * FROM Items").fetchall()
+    rows = cur.execute("""
+                    SELECT Items.name, Categories.name AS category, image_filename AS image
+                    FROM Items
+                    LEFT JOIN Categories
+                    ON Items.category_id = Categories.id
+                    """).fetchall()
     con.close()
     
-    # Create a dictionary for each item, omitting ID
+    # Create a dictionary for each item
     list = []
     for row in rows:
         columns = row.keys()
-        columns.remove("id")
         list.append({key: row[key] for key in columns})
     
     # Return all items
@@ -63,10 +78,10 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
         raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
     
     # Hash image at provided path using SHA-256
-    with open(image, "rb") as image_file:
-        bytes = image_file.read()
+    with open(image, "rb") as image_binary:
+        bytes = image_binary.read()
         image_hash = hashlib.sha256(bytes).hexdigest()
-        image_file.close()
+        image_binary.close()
         
     # Save image with hash as filename in ../db/images
     # Use creation mode to avoid overwriting existing copies of same image
@@ -75,13 +90,17 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
         db_image.write(bytes)
         db_image.close()
     except:
-        logger.info("New image creation failure:", sys.exc_info()[0])
+        logger.info("New image could not be created:", sys.exc_info()[0])
     
-    # Connect to database, insert new item, commit
-    con = sqlite3.connect('../db/mercari.sqlite3')
+    # Connect to database, find category_id, insert new item, commit
+    con = sqlite3.connect(db_path)
     cur = con.cursor()
     # Use null for id value to allow persistent primary key to automatically generate
-    cur.execute(f"INSERT INTO Items VALUES(null, \"{name}\", \"{category}\", \"{image_hash}.jpg\")")
+    cat_id = cur.execute("SELECT id FROM Categories WHERE name = ?", (category,)).fetchone()
+    if cat_id is None:
+        cur.execute("INSERT INTO Categories VALUES (null, ?)", (category,))
+        cat_id = cur.execute("SELECT id FROM Categories WHERE name = ?", (category,)).fetchone()
+    cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], image_hash + ".jpg"))
     con.commit()
     con.close()
     
@@ -103,51 +122,51 @@ def add_item(name: str = Form(...), category: str = Form(...), image: str = Form
     
 # GET Item by ID endpoint - Retrieve item by id number
 @app.get('/items/{item_id}')
-def get_item(item_id: int):
+def get_item(item_id: str):
 
     # Connect to database and fetch items containing keyword in name or category
-    con = sqlite3.connect('../db/mercari.sqlite3')
+    con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     # Use * to allow for schema changes (Not safe to add sensitive data to schema)
-    item = cur.execute(f"""
-                    SELECT * FROM Items
-                    WHERE id = {item_id}
-                    """).fetchone()
+    item = cur.execute("""
+                    SELECT Items.name, Categories.name AS category, image_filename AS image
+                    FROM Items
+                    LEFT JOIN Categories
+                    ON Items.category_id = Categories.id
+                    WHERE Items.id = ?
+                    """, (item_id,)).fetchone()
     con.close()
     
     # Throw exception if item not found
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    # Omit ID
-    columns = item.keys()
-    columns.remove("id")
-    
-    # Return all items
-    return {key: item[key] for key in columns}
+    # Return item
+    return {key: item[key] for key in item.keys()}
 
 # GET Search Items endpoint - Retrieve list of items matching keyword in SQLite3 database
 @app.get('/search')
 def search_items(keyword: str = Form(...)):
     
     # Connect to database and fetch items containing keyword in name or category
-    con = sqlite3.connect('../db/mercari.sqlite3')
+    con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    # Use * to allow for schema changes (Not safe to add sensitive data to schema)
-    rows = cur.execute(f"""
-                        SELECT * FROM Items
-                        WHERE name LIKE \"%{keyword}%\"
-                        OR category LIKE \"%{keyword}%\"
-                        """).fetchall()
+    rows = cur.execute("""
+                        SELECT Items.name, Categories.name AS category, image_filename AS image
+                        FROM Items
+                        LEFT JOIN Categories
+                        ON Items.category_id = Categories.id
+                        WHERE Items.name LIKE ?
+                        OR category LIKE ?
+                        """, ("%" + keyword + "%", "%" + keyword + "%")).fetchall()
     con.close()
     
-    # Create a dictionary for each item, omitting ID
+    # Create a dictionary for each item
     list = []
     for row in rows:
         columns = row.keys()
-        columns.remove("id")
         list.append({key: row[key] for key in columns})
     
     # Return all items
