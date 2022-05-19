@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/web_code
     environment:
-      - API_URL=http://localhost:9000/
+      - API_URL=http://localhost:9000
   app:
     build:
       context: .
@@ -17,4 +17,4 @@ services:
     volumes:
       - .:/app_code
     environment:
-      - FRONT_URL=http:/localhost:3000/
+      - FRONT_URL=http://localhost:3000
