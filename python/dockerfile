@@ -4,10 +4,10 @@ FROM python:3
 
 WORKDIR /app
 
-COPY python/requirements.txt python/requirements.txt
+COPY python python
 RUN pip3 install -r python/requirements.txt
 
-COPY . .
+COPY db db
 
 WORKDIR python
 
