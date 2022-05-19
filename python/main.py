@@ -70,6 +70,7 @@ def get_items_list():
 
 # POST Items endpoint - Add single item to SQLite3 database
 @app.post('/items')
+
 async def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)):
     logger.info(f"Receive item: {name}, category: {category}")
     
@@ -86,9 +87,9 @@ async def add_item(name: str = Form(...), category: str = Form(...), image: Uplo
     #        bytes = image_binary.read()
     #        image_hash = hashlib.sha256(bytes).hexdigest()
     #        image_binary.close()
-        
     # Save image with hashed filename in ../db/images
     # Use creation mode to avoid overwriting existing copies of same image
+    
     try:
         image_binary = image.file.read()
         db_image = open(f'images/{filename_hash}.jpg', "xb")
