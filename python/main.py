@@ -108,10 +108,8 @@ async def add_item(name: str = Form(...), category: str = Form(...), image: Uplo
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     # Use null for id value to allow persistent primary key to automatically generate
+    cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
     cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
-    if cat_id is None:
-        cur.execute("INSERT INTO Categories VALUES (null, ?)", (category,))
-        cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
     cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], filename_hash + ".jpg"))
     con.commit()
     con.close()
