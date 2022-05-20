@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/web_code
+      - ./typescript/simple-mercari-web:/app
     environment:
       - API_URL=http://localhost:9000
   app:
@@ -15,6 +15,7 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - .:/app_code
+      - ./python:/app/python
     environment:
       - FRONT_URL=http://localhost:3000
+      - UVICORN_RELOAD=True

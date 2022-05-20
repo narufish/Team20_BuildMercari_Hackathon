@@ -40,7 +40,7 @@ def startup_event():
 
 @app.get('/')
 def root():
-    return {"message": "Hello, world!"}
+    return {"message": "Simple Mercari API Root Directory"}
 
 # GET Items endpoint - Retreive list of items from SQLite3 database
 @app.get('/items')
@@ -194,7 +194,7 @@ async def get_image(image_filename):
         raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
 
     if not image.exists():
-        logger.debug(f"Image not found: {image}")
+        logger.info(f"Image not found: {image}")
         image = images / "default.jpg"
 
     return FileResponse(image)
