@@ -1,6 +1,8 @@
 *.sqlite3
 db/images
 python/items.json
+python/__pycache__
+
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos
