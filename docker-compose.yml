@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  web:
+    build: typescript/simple-mercari-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./typescript/simple-mercari-web:/app
+    environment:
+      - API_URL=http://localhost:9000
+  app:
+    build:
+      context: .
+      dockerfile: python/dockerfile
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./python:/app/python
+    environment:
+      - FRONT_URL=http://localhost:3000
+      - UVICORN_RELOAD=True
