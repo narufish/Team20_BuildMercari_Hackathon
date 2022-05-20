@@ -1,7 +1,6 @@
 import os
 import logging
 import pathlib
-from pathlib import Path
 import json
 import sqlite3
 import hashlib
@@ -25,14 +24,19 @@ app.add_middleware(
 
 ## WIP
 ## Check if database file exists - if not, create file based on schema.
-db_path = Path('../db/mercari.sqlite3')
-#if not db_path.is_file():
-#    db_schema = Path('../db/items.db')
-#    conn = sqlite3.connect(db_schema)
-#    with open('../db/mercari.sqlite3', "w") as new_db:
-#        for line in conn.iterdump():
-#            new_db.write("%s\n" % line)
-#    conn.close()
+db_path = pathlib.Path('../db/mercari.sqlite3')
+
+@app.on_event("startup")
+def startup_event():
+    if not db_path.is_file():
+        db_schema = open(pathlib.Path('../db/items.db'), "r")
+        schema = db_schema.read()
+        db_schema.close()
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        cur.executescript(schema)
+        con.commit()
+        con.close()
 
 @app.get('/')
 def root():
@@ -47,10 +51,10 @@ def get_items_list():
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     rows = cur.execute("""
-                    SELECT Items.name, Categories.name AS category, image_filename AS image
+                    SELECT item_name AS name, category_name AS category, item_image_filename AS image
                     FROM Items
                     LEFT JOIN Categories
-                    ON Items.category_id = Categories.id
+                    USING (category_id)
                     """).fetchall()
     con.close()
     
@@ -101,10 +105,10 @@ async def add_item(name: str = Form(...), category: str = Form(...), image: Uplo
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     # Use null for id value to allow persistent primary key to automatically generate
-    cat_id = cur.execute("SELECT id FROM Categories WHERE name = ?", (category,)).fetchone()
+    cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
     if cat_id is None:
         cur.execute("INSERT INTO Categories VALUES (null, ?)", (category,))
-        cat_id = cur.execute("SELECT id FROM Categories WHERE name = ?", (category,)).fetchone()
+        cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
     cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], filename_hash + ".jpg"))
     con.commit()
     con.close()
@@ -135,11 +139,11 @@ def get_item(item_id: str):
     cur = con.cursor()
     # Use * to allow for schema changes (Not safe to add sensitive data to schema)
     item = cur.execute("""
-                    SELECT Items.name, Categories.name AS category, image_filename AS image
+                    SELECT item_name AS name, category_name AS category, item_image_filename AS image
                     FROM Items
                     LEFT JOIN Categories
-                    ON Items.category_id = Categories.id
-                    WHERE Items.id = ?
+                    USING (category_id)
+                    WHERE item_id = ?
                     """, (item_id,)).fetchone()
     con.close()
     
@@ -159,11 +163,11 @@ def search_items(keyword: str = Form(...)):
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     rows = cur.execute("""
-                        SELECT Items.name, Categories.name AS category, image_filename AS image
+                        SELECT item_name AS name, category_name AS category, item_image_filename AS image
                         FROM Items
                         LEFT JOIN Categories
-                        ON Items.category_id = Categories.id
-                        WHERE Items.name LIKE ?
+                        USING (category_id)
+                        WHERE name LIKE ?
                         OR category LIKE ?
                         """, ("%" + keyword + "%", "%" + keyword + "%")).fetchall()
     con.close()
