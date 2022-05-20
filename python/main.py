@@ -22,10 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-## WIP
-## Check if database file exists - if not, create file based on schema.
+# Assign database path
 db_path = pathlib.Path('../db/mercari.sqlite3')
 
+# On startup, initialize database if it does not exist
 @app.on_event("startup")
 def startup_event():
     if not db_path.is_file():
@@ -51,7 +51,10 @@ def get_items_list():
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     rows = cur.execute("""
-                    SELECT item_name AS name, category_name AS category, item_image_filename AS image
+                    SELECT item_id AS id,
+                            item_name AS name,
+                            category_name AS category,
+                            item_image_filename AS image
                     FROM Items
                     LEFT JOIN Categories
                     USING (category_id)
