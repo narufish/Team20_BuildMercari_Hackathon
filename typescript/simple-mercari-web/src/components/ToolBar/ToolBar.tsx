@@ -6,10 +6,11 @@ interface Prop {
 		toggled: boolean,
 		buttonText: string,
 	};
+	confirmDelete?: () => void;
 }
 
 export const ToolBar: React.FC<Prop> = (props) => {
-	const { selectMode, onSelectToggled } = props;
+	const { selectMode, onSelectToggled, confirmDelete } = props;
 	
     function toggleSelect() {
 		if (selectMode.toggled) {
@@ -25,14 +26,6 @@ export const ToolBar: React.FC<Prop> = (props) => {
 			onSelectToggled && onSelectToggled();
 		}
 	};
-	
-	function confirmDelete() {
-		if (window.confirm("Do you want to delete the selected items?")) {
-			/* Get list of selected items */
-			/* API request to delete each item */
-			onSelectToggled && onSelectToggled();
-		}
-	}
 	
 	const deleteVis = {
 		display: (selectMode.toggled ? 'table-cell' : 'none'),

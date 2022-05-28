@@ -14,10 +14,12 @@ interface Prop {
   reload?: boolean;
   onLoadCompleted?: () => void;
   selectModeOn?: boolean;
+  checkList?: number[];
+  handleClick?:  (id: number, checked: boolean) => void;
 }
 
 export const ItemList: React.FC<Prop> = (props) => {
-  const { reload = true, onLoadCompleted, selectModeOn } = props;
+  const { reload = true, onLoadCompleted, selectModeOn, checkList = [], handleClick } = props;
   const [items, setItems] = useState<Item[]>([])
   const fetchItems = () => {
     fetch(server.concat('/items'),
@@ -53,6 +55,7 @@ export const ItemList: React.FC<Prop> = (props) => {
   return (
     <div className='ItemGrid'>
       {items.map((item) => {
+        const isChecked: boolean = checkList.includes(item.id);
         return (
           <div key={item.id} className='ItemList'>
             <input 
@@ -60,7 +63,8 @@ export const ItemList: React.FC<Prop> = (props) => {
               id={String(item.id)}
               name={item.name}
               type='checkbox'
-              /*onChange={handleClick}*/
+              onChange={() => handleClick?.(item.id, !isChecked)}
+              defaultChecked={false}
               style={checkVis}
             />
             <img src={server + "/image/" + item.image} />
