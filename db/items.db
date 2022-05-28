@@ -8,3 +8,22 @@ CREATE TABLE IF NOT EXISTS Categories (
     category_id INTEGER PRIMARY KEY,
     category_name TEXT UNIQUE NOT NULL
     );
+CREATE TABLE IF NOT EXISTS Drafts(
+    draft_id INTEGER PRIMARY KEY,
+    sort_index INT NOT NULL AS (draft_id) STORED,
+    item_name TEXT NOT NULL,
+    item_image_filename TEXT NOT NULL,
+    category_id INT NOT NULL,
+    item_state_id INT NOT NULL,
+    description TEXT,
+    delivery_method_id INT NOT NULL,
+    price INT NOT NULL
+    );
+CREATE TABLE IF NOT EXISTS Item_State(
+    item_state_id INTEGER PRIMARY KEY,
+    state TEXT NOT NULL
+    );
+CREATE TABLE IF NOT EXISTS Delivery(
+    delivery_method_id INTEGER PRIMARY KEY,
+    delivery_method TEXT NOT NULL
+    );
