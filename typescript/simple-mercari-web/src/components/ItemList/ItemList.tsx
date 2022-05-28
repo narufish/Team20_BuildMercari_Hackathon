@@ -13,10 +13,11 @@ const server = process.env.API_URL || 'http://127.0.0.1:9000';
 interface Prop {
   reload?: boolean;
   onLoadCompleted?: () => void;
+  selectModeOn?: boolean;
 }
 
 export const ItemList: React.FC<Prop> = (props) => {
-  const { reload = true, onLoadCompleted } = props;
+  const { reload = true, onLoadCompleted, selectModeOn } = props;
   const [items, setItems] = useState<Item[]>([])
   const fetchItems = () => {
     fetch(server.concat('/items'),
@@ -44,12 +45,24 @@ export const ItemList: React.FC<Prop> = (props) => {
       fetchItems();
     }
   }, [reload]);
-
+  
+  const checkVis = {
+    display: (selectModeOn ? 'block' : 'none'),
+  };
+  
   return (
     <div className='ItemGrid'>
       {items.map((item) => {
         return (
           <div key={item.id} className='ItemList'>
+            <input 
+              className='Selector'
+              id={String(item.id)}
+              name={item.name}
+              type='checkbox'
+              /*onChange={handleClick}*/
+              style={checkVis}
+            />
             <img src={server + "/image/" + item.image} />
             <p>
               <span>Name: {item.name}</span>
