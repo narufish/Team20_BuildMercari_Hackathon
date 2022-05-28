@@ -50,6 +50,12 @@ export const ItemList: React.FC<Prop> = (props) => {
       {items.map((item) => {
         return (
           <div key={item.id} className='ItemList'>
+            <input 
+              /*{ id={item.id}
+              name={item.name} }*/
+              
+              type="checkbox"
+            />
             <img src={server + "/image/" + item.image} />
             <p>
               <span>Name: {item.name}</span>

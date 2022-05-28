@@ -2,13 +2,27 @@
   text-align: center;
 }
 
-.Title {
+.NavBar {
   background-color: #222427;
   min-height: 8vh;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  display: table;
   align-items: center;
   justify-content: left;
+}
+
+.NavItem {
+  display: table-cell;
+  width: 33%;
+  text-align: center;
+  font-size: calc(18px + 1vmin);
+  color: rgb(0, 150, 255);
+}
+
+.Title {
+  display: table-cell;
+  width: 33%;
+  text-align: center;
   font-size: calc(30px + 1vmin);
   color: white;
 }
@@ -31,24 +45,37 @@
 }
 
 .ItemGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: block;
+/*    grid-template-columns: 1fr 1fr 1fr;*/
 }
 
 .ItemList {
   background-color: #222427;
   min-height: 8vh;
+  width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: left;
   font-size: calc(10px + 1vmin);
   color: white;
+  border-top: 1px solid;
+  border-color: grey;
+}
+
+.ItemList > input {
+  visibility: hidden;
 }
 
 .ItemList > img {
     max-width: 200px;
     max-height: 100px;
+    border-right: 1px solid;
+    border-color: grey;
+}
+
+.ItemList > p {
+    margin: 15px;
 }
 
 .App-link {
