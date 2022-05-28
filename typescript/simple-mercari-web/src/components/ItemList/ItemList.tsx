@@ -22,7 +22,7 @@ export const ItemList: React.FC<Prop> = (props) => {
   const { reload = true, onLoadCompleted, selectModeOn, checkList = [], handleClick } = props;
   const [items, setItems] = useState<Item[]>([])
   const fetchItems = () => {
-    fetch(server.concat('/items'),
+    fetch(server.concat('/drafts'),
       {
         method: 'GET',
         mode: 'cors',
@@ -34,7 +34,7 @@ export const ItemList: React.FC<Prop> = (props) => {
       .then(response => response.json())
       .then(data => {
         console.log('GET success:', data);
-        setItems(data.items);
+        setItems(data["draft items"]);
         onLoadCompleted && onLoadCompleted();
       })
       .catch(error => {
