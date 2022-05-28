@@ -42,7 +42,7 @@ def startup_event():
 def root():
     return {"message": "Simple Mercari API Root Directory"}
 
-# GET Items endpoint - Retreive list of items from SQLite3 database
+# GET Items endpoint - Retreive list of items from SQLite3 database (Items table)
 @app.get('/items')
 def get_items_list():
 
@@ -50,15 +50,21 @@ def get_items_list():
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    rows = cur.execute("""
-                    SELECT item_id AS id,
-                            item_name AS name,
-                            category_name AS category,
-                            item_image_filename AS image
-                    FROM Items
-                    LEFT JOIN Categories
-                    USING (category_id)
-                    """).fetchall()
+    try:
+        rows = cur.execute("""
+                        SELECT item_id AS id,
+                                item_name AS name,
+                                category_name AS category,
+                                item_image_filename AS image
+                        FROM Items
+                        LEFT JOIN Categories
+                        USING (category_id)
+                        """).fetchall()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Create a dictionary for each item
@@ -106,13 +112,19 @@ async def add_item(name: str = Form(...), category: str = Form(...), image: Uplo
         logger.info("New image could not be created:", sys.exc_info()[0])
 
     # Connect to database, find category_id, insert new item, commit
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-    # Use null for id value to allow persistent primary key to automatically generate
-    cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
-    cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
-    cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], filename_hash + ".jpg"))
-    con.commit()
+    try:
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        # Use null for id value to allow persistent primary key to automatically generate
+        cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
+        cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()
+        cur.execute("INSERT INTO Items VALUES(null, ?, ?, ?)", (name, cat_id[0], filename_hash + ".jpg"))
+        con.commit()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Return accepted item message
@@ -139,14 +151,20 @@ def get_item(item_id: str):
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    # Use * to allow for schema changes (Not safe to add sensitive data to schema)
-    item = cur.execute("""
-                    SELECT item_name AS name, category_name AS category, item_image_filename AS image
-                    FROM Items
-                    LEFT JOIN Categories
-                    USING (category_id)
-                    WHERE item_id = ?
-                    """, (item_id,)).fetchone()
+
+    try:
+        item = cur.execute("""
+                        SELECT item_name AS name, category_name AS category, item_image_filename AS image
+                        FROM Items
+                        LEFT JOIN Categories
+                        USING (category_id)
+                        WHERE item_id = ?
+                        """, (item_id,)).fetchone()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Throw exception if item not found
@@ -164,14 +182,20 @@ def search_items(keyword: str = Form(...)):
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    rows = cur.execute("""
-                        SELECT item_name AS name, category_name AS category, item_image_filename AS image
-                        FROM Items
-                        LEFT JOIN Categories
-                        USING (category_id)
-                        WHERE name LIKE ?
-                        OR category LIKE ?
-                        """, ("%" + keyword + "%", "%" + keyword + "%")).fetchall()
+    try:
+        rows = cur.execute("""
+                            SELECT item_name AS name, category_name AS category, item_image_filename AS image
+                            FROM Items
+                            LEFT JOIN Categories
+                            USING (category_id)
+                            WHERE name LIKE ?
+                            OR category LIKE ?
+                            """, ("%" + keyword + "%", "%" + keyword + "%")).fetchall()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Create a dictionary for each item
@@ -198,27 +222,36 @@ async def get_image(image_filename):
 
     return FileResponse(image)
 
+# GET Items endpoint - Retreive list of items from SQLite3 database (Drafts table)
 @app.get('/drafts')
 def get_items_list():
     # Connect to database and fetch all items
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    rows = cur.execute("""
-                    SELECT Drafts.draft_id AS id,
-                            Drafts.sort_index,
-                            Drafts.item_name AS name,
-                            Drafts.item_image_filename AS image,
-                            Categories.category_name AS category,
-                            Item_State.state AS state,
-                            Drafts.description AS description,
-                            Delivery.delivery_method AS delivery,
-                            Drafts.price AS price
-                    FROM Drafts
-                    LEFT JOIN Categories USING (category_id)
-                    LEFT JOIN Item_State USING (item_state_id)
-                    LEFT JOIN Delivery USING (delivery_method_id)
-                    """).fetchall()
+    # the rows are ordered by sort_index
+    try:
+        rows = cur.execute("""
+                        SELECT Drafts.draft_id AS id,
+                                Drafts.sort_index,
+                                Drafts.item_name AS name,
+                                Drafts.item_image_filename AS image,
+                                Categories.category_name AS category,
+                                Item_State.state AS state,
+                                Drafts.description AS description,
+                                Delivery.delivery_method AS delivery,
+                                Drafts.price AS price
+                        FROM Drafts
+                        LEFT JOIN Categories USING (category_id)
+                        LEFT JOIN Item_State USING (item_state_id)
+                        LEFT JOIN Delivery USING (delivery_method_id)
+                        ORDER BY sort_index
+                        """).fetchall()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Create a dictionary for each item
@@ -230,7 +263,7 @@ def get_items_list():
     # Return all items
     return {"draft items": list}
 
-# POST request to post a single item to the drafts table in SQLite3 database
+# POST Items endpoint - Add single item to SQLite3 database (Drafts table)
 @app.post('/drafts')
 async def add_draft(item_name: str = Form(...), image: UploadFile = File(...),
 category: str = Form(...), item_state_id: int = Form(...), description: str = Form(...),
@@ -246,42 +279,58 @@ delivery_id: int = Form(...), price: int = Form(...)):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
     # Use null for id value to allow persistent primary key to automatically generate
-    cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
-    cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()[0]
-    params = (item_name, image.filename, cat_id, item_state_id, description, delivery_id, price,)
-    cur.execute("""INSERT INTO Drafts (item_name, item_image_filename, category_id, item_state_id,
-     description, delivery_method_id, price)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
-     """, params)
-    con.commit()
+
+    try:
+        cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
+        cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()[0]
+        params = (item_name, image.filename, cat_id, item_state_id, description, delivery_id, price,)
+        cur.execute("""INSERT INTO Drafts (sort_index, item_name, item_image_filename, category_id, item_state_id,
+         description, delivery_method_id, price)
+         VALUES (0, ?, ?, ?, ?, ?, ?, ?)
+         """, params)
+        #retrieve the index of the last added row in the Drafts table (sort_in) - used to set the intial sort_index
+        sort_in = cur.execute("SELECT draft_id FROM Drafts ORDER BY draft_id DESC").fetchone()[0]
+        cur.execute("UPDATE Drafts SET sort_index = ? WHERE draft_id = ?",(sort_in, sort_in,))
+        con.commit()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Return accepted item message
-    return {"message": f"item received in drafts: {item_name}, category: {category}, image_filename: {image.filename}"}
+    return {"message": f"item received in drafts: {item_name}, category: {category}, image_filename: {image.filename}, {sort_in}"}
 
-# GET request to obtain the info a single item in the drafts table by inputting draft_id
+# GET Item by ID endpoint - Retrieve item in Drafts table by draft_id number
 @app.get('/drafts/{draft_id}')
 def get_draft(draft_id: int):
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    # Use * to allow for schema changes (Not safe to add sensitive data to schema)
-    item = cur.execute("""
-                    SELECT Drafts.draft_id AS id,
-                            Drafts.sort_index,
-                            Drafts.item_name AS name,
-                            Drafts.item_image_filename AS image,
-                            Categories.category_name AS category,
-                            Item_State.state AS state,
-                            Drafts.description AS description,
-                            Delivery.delivery_method AS delivery,
-                            Drafts.price AS price
-                    FROM Drafts
-                    LEFT JOIN Categories USING (category_id)
-                    LEFT JOIN Item_State USING (item_state_id)
-                    LEFT JOIN Delivery USING (delivery_method_id)
-                    WHERE id = ?
-                    """, (draft_id,)).fetchone()
+
+    try:
+        item = cur.execute("""
+                        SELECT Drafts.draft_id AS id,
+                                Drafts.sort_index,
+                                Drafts.item_name AS name,
+                                Drafts.item_image_filename AS image,
+                                Categories.category_name AS category,
+                                Item_State.state AS state,
+                                Drafts.description AS description,
+                                Delivery.delivery_method AS delivery,
+                                Drafts.price AS price
+                        FROM Drafts
+                        LEFT JOIN Categories USING (category_id)
+                        LEFT JOIN Item_State USING (item_state_id)
+                        LEFT JOIN Delivery USING (delivery_method_id)
+                        WHERE id = ?
+                        """, (draft_id,)).fetchone()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
 
     # Throw exception if item not found
@@ -296,6 +345,36 @@ def get_draft(draft_id: int):
 def delete_draft_item(draft_id: int):
     con = sqlite3.connect(db_path)
     cur = con.cursor()
-    cur.execute("DELETE FROM Drafts WHERE draft_id = (?)", (draft_id,))
-    con.commit()
+
+    try:
+        cur.execute("DELETE FROM Drafts WHERE draft_id = (?)", (draft_id,))
+        con.commit()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
     con.close()
+    # Return deleted item message
+    return {"message": f"item deleted: {draft_id}"}
+
+# PUT endpoint - updates the position between two items (swap)
+@app.put("/drafts")
+def swap_draft_items(item_id1: int = Form(...), item_id2: int = Form(...)):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    # swaps the sort_index between item1 and item2 in the Drafts table
+    try:
+        sort_index1 = cur.execute("SELECT sort_index FROM Drafts WHERE draft_id = ?", (item_id1,)).fetchone()[0]
+        sort_index2 = cur.execute("SELECT sort_index FROM Drafts WHERE draft_id = ?", (item_id2,)).fetchone()[0]
+        cur.execute("UPDATE Drafts SET sort_index = ? WHERE draft_id = ?", (sort_index2, item_id1,))
+        cur.execute("UPDATE Drafts SET sort_index = ? WHERE draft_id = ?", (sort_index1, item_id2,))
+        con.commit()
+    except sqlite3.Error as er:
+        logger.error("SQLite error: %s", (' '.join(er.args)))
+        logger.error("Exception class is: ", er.__class__)
+        return {"message": f"{er}"}
+
+    con.close()
+    # Return swapped messsage
+    return {"message": f"item swapped: {item_id1} - {item_id2}"}
