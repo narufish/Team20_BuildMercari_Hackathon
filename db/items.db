@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS Categories (
     );
 CREATE TABLE IF NOT EXISTS Drafts(
     draft_id INTEGER PRIMARY KEY,
-    sort_index INTEGER NOT NULL,
+    sort_index INT NOT NULL AS (draft_id) STORED,
     item_name TEXT NOT NULL,
     item_image_filename TEXT NOT NULL,
     category_id INT NOT NULL,
@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS Item_State(
     state TEXT NOT NULL
     );
 CREATE TABLE IF NOT EXISTS Delivery(
-    method_id INTEGER PRIMARY KEY,
+    delivery_method_id INTEGER PRIMARY KEY,
     delivery_method TEXT NOT NULL
     );
