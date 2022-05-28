@@ -51,10 +51,12 @@ export const ItemList: React.FC<Prop> = (props) => {
         return (
           <div key={item.id} className='ItemList'>
             <input 
-              /*{ id={item.id}
-              name={item.name} }*/
-              
-              type="checkbox"
+              className='Selector'
+              id={String(item.id)}
+              name={item.name}
+              type='checkbox'
+              /*onChange={handleClick}
+              checked={isCheck.includes(item.id)}*/
             />
             <img src={server + "/image/" + item.image} />
             <p>
