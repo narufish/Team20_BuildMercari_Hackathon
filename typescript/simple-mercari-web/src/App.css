@@ -63,10 +63,6 @@
   border-color: grey;
 }
 
-.ItemList > input {
-  visibility: hidden;
-}
-
 .ItemList > img {
     max-width: 200px;
     max-height: 100px;

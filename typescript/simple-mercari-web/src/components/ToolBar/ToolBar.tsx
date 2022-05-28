@@ -1,28 +1,48 @@
 import React, { useState } from 'react';
 
 interface Prop {
-	onSelectCompleted?: () => void;
+	onSelectToggled?: () => void;
+	selectMode: {
+		toggled: boolean,
+		buttonText: string,
+	};
 }
 
 export const ToolBar: React.FC<Prop> = (props) => {
-	const [selectMode, setSelectMode] = useState(true);
+	const { selectMode, onSelectToggled } = props;
 	
     function toggleSelect() {
-		if (selectMode) {
-			/* Replace button text, hide and empty checkboxes */
-			setSelectMode(!selectMode);
+		if (selectMode.toggled) {
+			/* Hide and empty checkboxes */
+			selectMode.toggled = false;
+			selectMode.buttonText = 'Edit';
+			onSelectToggled && onSelectToggled();
 		} else {
-			/* Change button text to "Done", show checkboxes, show delete button */
+			/* Show checkboxes, show delete button */
 			/* Show sorting handles (later) */
-			setSelectMode(!selectMode);
+			selectMode.toggled = true;
+			selectMode.buttonText = 'Done';
+			onSelectToggled && onSelectToggled();
 		}
+	};
+	
+	function confirmDelete() {
+		if (window.confirm("Do you want to delete the selected items?")) {
+			/* Get list of selected items */
+			/* API request to delete each item */
+			onSelectToggled && onSelectToggled();
+		}
+	}
+	
+	const deleteVis = {
+		display: (selectMode.toggled ? 'table-cell' : 'none'),
 	};
 	
 	return (
 		<header className='ToolBar'>
 			<div className='TBarItem'>
 			  <p>
-				
+				<button name='DeleteButton' onClick={confirmDelete} style={deleteVis} >Delete</button>
 			  </p>
 			</div>
 			<div className='Title'>
@@ -32,7 +52,7 @@ export const ToolBar: React.FC<Prop> = (props) => {
 			</div>
 			<div className='TBarItem'>
 			  <p>
-				<button name='SelectButton' /*onClick={toggleSelect()}*/>Select</button>
+				<button name='SelectButton' onClick={toggleSelect} >{selectMode.buttonText}</button>
 			  </p>
 			</div>
 		</header>
