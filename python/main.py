@@ -13,6 +13,7 @@ app = FastAPI()
 logger = logging.getLogger("uvicorn")
 logger.level = logging.INFO
 images = pathlib.Path(__file__).parent.resolve() / "images"
+draft_images = pathlib.Path(__file__).parent.resolve() / "draft_images"
 origins = [ os.environ.get('FRONT_URL', 'http://localhost:3000') ]
 app.add_middleware(
     CORSMiddleware,
@@ -221,8 +222,23 @@ async def get_image(image_filename):
         image = images / "default.jpg"
 
     return FileResponse(image)
+    
+@app.get("/draft_image/{image_filename}")
+async def get_draft_image(image_filename):
 
-# GET Items endpoint - Retreive list of items from SQLite3 database (Drafts table)
+    # Create image path
+    image = draft_images / image_filename
+
+    if not image_filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
+
+    if not image.exists():
+        logger.info(f"Image not found: {image}")
+        image = draft_images / "default.jpg"
+
+    return FileResponse(image)
+
+# GET Items endpoint - Retrieve list of items from SQLite3 database (Drafts table)
 @app.get('/drafts')
 def get_items_list():
     # Connect to database and fetch all items

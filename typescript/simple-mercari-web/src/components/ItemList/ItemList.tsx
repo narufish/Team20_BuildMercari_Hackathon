@@ -67,7 +67,7 @@ export const ItemList: React.FC<Prop> = (props) => {
               defaultChecked={false}
               style={checkVis}
             />
-            <img src={server + "/image/" + item.image} />
+            <img src={server + "/draft_image/" + item.image} />
             <p>
               <span>Name: {item.name}</span>
               <br />
