@@ -27,7 +27,12 @@ function App() {
         })
           .then(response => {
             console.log('DELETE status:', response.statusText);
-            {/* onSelectToggled && onSelectToggled(); */}
+            setSelectMode({
+              toggled: false,
+              buttonText: 'Edit',
+            });
+            setIsCheck([]);
+            setReload(true);
           })
           .catch((error) => {
             console.error('POST error:', error);

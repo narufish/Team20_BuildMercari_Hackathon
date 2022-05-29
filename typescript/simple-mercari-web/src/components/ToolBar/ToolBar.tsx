@@ -14,13 +14,11 @@ export const ToolBar: React.FC<Prop> = (props) => {
 	
     function toggleSelect() {
 		if (selectMode.toggled) {
-			/* Hide and empty checkboxes */
 			selectMode.toggled = false;
 			selectMode.buttonText = 'Edit';
 			onSelectToggled && onSelectToggled();
 		} else {
-			/* Show checkboxes, show delete button */
-			/* Show sorting handles (later) */
+			/* To-Do: show sorting handles */
 			selectMode.toggled = true;
 			selectMode.buttonText = 'Done';
 			onSelectToggled && onSelectToggled();
