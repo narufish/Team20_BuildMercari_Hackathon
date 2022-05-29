@@ -53,9 +53,9 @@ function App() {
   return (
     <div>
       <ToolBar selectMode={selectMode} onSelectToggled={() => setReload(true)} confirmDelete={confirmDelete} />
-      <div>
+      {/* <div>
         <Listing onListingCompleted={() => setReload(true)} />
-      </div>
+      </div> */}
       <div>
         <ItemList
           reload={reload}

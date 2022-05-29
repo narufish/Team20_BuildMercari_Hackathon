@@ -19,11 +19,12 @@ body{
 
 .ToolBar {
   background-color: var(--front);
-  min-height: 8vh;
+  height: 8px;
   width: 100%;
   display: table;
   align-items: center;
   justify-content: left;
+  border-bottom: 1px solid var(--border);
 }
 
 .TBarItem {
@@ -55,13 +56,13 @@ body{
   justify-content: left;
   font-size: calc(14px + 1vmin);
   color: #404041;
-  margin: 1em;
+  /* margin: 1em; */
 }
 
 .Listing > form > div {
     display: flex;
     justify-content: left;
-    padding: 1em;
+    /* padding: 1em; */
 }
 
 .ItemGrid {
@@ -78,41 +79,61 @@ body{
   font-size: calc(10px + 1vmin);
   color: #404041;
   /*border-top: 1px solid;*/
-  border: 1px solid;
+  /* border: 1px solid; */
   border-color: var(--border);
-  border-radius: 4px;
-  margin: 1em;
+  /* border-radius: 4px; */
+  /* margin: 1em; */
 }
 
-.ItemList > div {
-  /*border: 1px solid rgb(58, 58, 58);*/
-  
+.Selector {
+  margin: 0.5em;
+}
+
+.Handle {
+  display: block;
+  font-size: 24px;
+  color: lightgrey;
+  margin: auto 1em auto auto
+}
+
+.Name {
+  font-size: 18px;
+}
+
+.Category {
+  color: darkgrey;
+  font-size: 16px;
+  text-transform: capitalize;
 }
 
 .ItemInfo {
   display: flex;
   flex-direction: row;
   align-items: left;
+  align-content: center;
+  vertical-align: center;
   justify-content: left;
   /* font-size: calc(10px + 1vmin); */
   /* color: white; */
 }
 
 .ItemInfo > img {
-    width: 200px;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    /*object-fit: cover;*/
+    width: 20%;
+    height: 110px;
+    object-fit: cover;
     border-right: 1px solid;
     border-color: var(--border);
-    padding: .5em;
+    /* padding: .5em; */
     
 }
 
 .ItemInfo > p {
-    margin: 2em;
-    padding: 1em;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 1em;
+    margin-right: 1em;
+    /* padding: 1em; */
+    vertical-align: center;
     font-family: Graphik,-apple-system,system-ui,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
 
 }
@@ -122,7 +143,7 @@ body{
   display: table;
   align-items: center;
   justify-content: left;
-  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
 }
 
 .TitleRow, .IndicatorRow {
@@ -131,10 +152,11 @@ body{
 
 .ProgressTitle {
   display: table-cell;
-  width: auto;
+  width: 20%;
   align-content: center;
+  font-size: 14px;
   border-right: 1px solid var(--border);
-  padding: 1em;
+  padding: 0.5em;
 }
 
 .IndicatorOn {
@@ -155,9 +177,12 @@ body{
   color: #61dafb;
 }
 
-#button{
-  appearance: button;
+button {
+  /* -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none; */
   background-color: #b82e3e;
+  color: #b82e3e;
   border: 0px solid #b82e3e;
   border-radius: 4px;
   box-sizing: border-box;
@@ -178,20 +203,20 @@ body{
   width: fit-content;
 }
 
-#button:disabled {
+button:disabled {
   opacity: .5;
 }
 
-#button:focus {
+button:focus {
   outline: 0;
 }
 
-#button:hover {
+button:hover {
   background-color: rgb(119, 26, 23);
   
 }
 
-#button:active {
+button:active {
   background-color: #ec6363;
 }
 

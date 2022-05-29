@@ -37,10 +37,10 @@ export const Listing: React.FC<Prop> = (props) => {
     data.append('item_name', values.name)
     data.append('category', values.category)
     data.append('image', values.image)
-    data.append('item_state_id', '0')
-    data.append('delivery_id', '0')
-    data.append('price', '0')
-    data.append('description', 'test')
+    data.append('item_state_id', 'null')
+    data.append('delivery_id', 'null')
+    data.append('price', 'null')
+    data.append('description', 'null')
 
     fetch(server.concat('/drafts'), {
       method: 'POST',

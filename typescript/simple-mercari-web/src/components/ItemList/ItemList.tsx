@@ -5,6 +5,7 @@ interface Item {
   name: string;
   category: string;
   image: string;
+  state: number;
   description: string;
   delivery: string;
   price: number;
@@ -60,7 +61,7 @@ export const ItemList: React.FC<Prop> = (props) => {
       {items.map((item) => {
         const isChecked: boolean = checkList.includes(item.id);
         function completeCheck(value: string | number) {
-          if (value) {
+          if (value && value != 'null' && value != 0) {
             return 'IndicatorOn';
           }
           return 'IndicatorOff';
@@ -79,11 +80,14 @@ export const ItemList: React.FC<Prop> = (props) => {
               />
               <img src={server + "/draft_image/" + item.image} />
               <p>
-                <span>Name: {item.name}</span>
-                <br />
+                <span className='Name'>{item.name}</span>
                 <br/>
-                <span>Category: {item.category}</span>
+                <br/>
+                <span className='Category'>{item.category}</span>
               </p>
+              <div className='Handle' style={checkVis}>
+                ☰
+              </div>
             </div>
             <div className='ProgressBar'>
               <div className='TitleRow'>
@@ -95,7 +99,7 @@ export const ItemList: React.FC<Prop> = (props) => {
               </div>
               <div className='IndicatorRow'>
                 <div className={completeCheck(item.image)}></div>
-                <div className={completeCheck(item.category)}></div>
+                <div className={completeCheck(item.state)}></div>
                 <div className={completeCheck(item.description)}></div>
                 <div className={completeCheck(item.delivery)}></div>
                 <div className={completeCheck(item.price)}></div>
