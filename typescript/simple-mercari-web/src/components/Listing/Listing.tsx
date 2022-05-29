@@ -34,11 +34,15 @@ export const Listing: React.FC<Prop> = (props) => {
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const data = new FormData()
-    data.append('name', values.name)
+    data.append('item_name', values.name)
     data.append('category', values.category)
     data.append('image', values.image)
+    data.append('item_state_id', '0')
+    data.append('delivery_id', '0')
+    data.append('price', '0')
+    data.append('description', 'test')
 
-    fetch(server.concat('/items'), {
+    fetch(server.concat('/drafts'), {
       method: 'POST',
       mode: 'cors',
       body: data,
