@@ -13,6 +13,7 @@ app = FastAPI()
 logger = logging.getLogger("uvicorn")
 logger.level = logging.INFO
 images = pathlib.Path(__file__).parent.resolve() / "images"
+draft_images = pathlib.Path(__file__).parent.resolve() / "draft_images"
 origins = [ os.environ.get('FRONT_URL', 'http://localhost:3000') ]
 app.add_middleware(
     CORSMiddleware,
@@ -221,8 +222,23 @@ async def get_image(image_filename):
         image = images / "default.jpg"
 
     return FileResponse(image)
+    
+@app.get("/draft_image/{image_filename}")
+async def get_draft_image(image_filename):
 
-# GET Items endpoint - Retreive list of items from SQLite3 database (Drafts table)
+    # Create image path
+    image = draft_images / image_filename
+
+    if not image_filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
+
+    if not image.exists():
+        logger.info(f"Image not found: {image}")
+        image = draft_images / "default.jpg"
+
+    return FileResponse(image)
+
+# GET Items endpoint - Retrieve list of items from SQLite3 database (Drafts table)
 @app.get('/drafts')
 def get_items_list():
     # Connect to database and fetch all items
@@ -266,11 +282,19 @@ def get_items_list():
 # POST Items endpoint - Add single item to SQLite3 database (Drafts table)
 @app.post('/drafts')
 async def add_draft(item_name: str = Form(...), image: UploadFile = File(...),
-category: str = Form(...), item_state_id: int = Form(...), description: str = Form(...),
-delivery_id: int = Form(...), price: int = Form(...)):
+category: str = Form(...), item_state_id: str = Form(...), description: str = Form(...),
+delivery_id: str = Form(...), price: str = Form(...)):
+    
+    # Raise exception if image file extension is not .jpg
+    if not image.filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image filename does not end with .jpg")
+    
+    image_title = image.filename.split(".")[0].encode()
+    hashed_filename = hashlib.sha256(image_title).hexdigest() + ".jpg"
+    
     try:
         image_binary = image.file.read()
-        db_image = open(f'draft_images/{image.filename}', "xb")
+        db_image = open(f'draft_images/{hashed_filename}', "xb")
         db_image.write(image_binary)
         db_image.close()
     except:
@@ -283,7 +307,7 @@ delivery_id: int = Form(...), price: int = Form(...)):
     try:
         cur.execute("INSERT OR IGNORE INTO Categories VALUES (null, ?)", (category,))
         cat_id = cur.execute("SELECT category_id FROM Categories WHERE category_name = ?", (category,)).fetchone()[0]
-        params = (item_name, image.filename, cat_id, item_state_id, description, delivery_id, price,)
+        params = (item_name, hashed_filename, cat_id, item_state_id, description, delivery_id, price,)
         cur.execute("""INSERT INTO Drafts (sort_index, item_name, item_image_filename, category_id, item_state_id,
          description, delivery_method_id, price)
          VALUES (0, ?, ?, ?, ?, ?, ?, ?)
