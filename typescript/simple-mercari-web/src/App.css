@@ -54,24 +54,62 @@
   min-height: 8vh;
   width: 100%;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: left;
+  flex-direction: column;
   font-size: calc(10px + 1vmin);
   color: white;
   border-top: 1px solid;
   border-color: grey;
 }
 
-.ItemList > img {
+.ItemInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+  /* font-size: calc(10px + 1vmin); */
+  /* color: white; */
+}
+
+.ItemInfo > img {
     max-width: 200px;
     max-height: 100px;
     border-right: 1px solid;
     border-color: grey;
 }
 
-.ItemList > p {
+.ItemInfo > p {
     margin: 15px;
+}
+
+.ProgressBar {
+  width: 100%;
+  display: table;
+  align-items: center;
+  justify-content: left;
+}
+
+.TitleRow, .IndicatorRow {
+  display: table-row;
+}
+
+.ProgressTitle {
+  display: table-cell;
+  width: auto;
+  align-content: center;
+}
+
+.IndicatorOn {
+  display: table-cell;
+  width: auto;
+  height: 6px;
+  background-color: limegreen;
+}
+
+.IndicatorOff {
+  display: table-cell;
+  width: auto;
+  height: 6px;
+  background-color: lightgray;
 }
 
 .App-link {

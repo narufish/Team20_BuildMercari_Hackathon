@@ -5,6 +5,9 @@ interface Item {
   name: string;
   category: string;
   image: string;
+  description: string;
+  delivery: string;
+  price: number;
 };
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
@@ -56,23 +59,47 @@ export const ItemList: React.FC<Prop> = (props) => {
     <div className='ItemGrid'>
       {items.map((item) => {
         const isChecked: boolean = checkList.includes(item.id);
+        function completeCheck(value: string | number) {
+          if (value) {
+            return 'IndicatorOn';
+          }
+          return 'IndicatorOff';
+        }
         return (
           <div key={item.id} className='ItemList'>
-            <input 
-              className='Selector'
-              id={String(item.id)}
-              name={item.name}
-              type='checkbox'
-              onChange={() => handleClick?.(item.id, !isChecked)}
-              defaultChecked={false}
-              style={checkVis}
-            />
-            <img src={server + "/draft_image/" + item.image} />
-            <p>
-              <span>Name: {item.name}</span>
-              <br />
-              <span>Category: {item.category}</span>
-            </p>
+            <div className='ItemInfo'>
+              <input 
+                className='Selector'
+                id={String(item.id)}
+                name={item.name}
+                type='checkbox'
+                onChange={() => handleClick?.(item.id, !isChecked)}
+                defaultChecked={false}
+                style={checkVis}
+              />
+              <img src={server + "/draft_image/" + item.image} />
+              <p>
+                <span>Name: {item.name}</span>
+                <br />
+                <span>Category: {item.category}</span>
+              </p>
+            </div>
+            <div className='ProgressBar'>
+              <div className='TitleRow'>
+                <div className='ProgressTitle'>Image</div>
+                <div className='ProgressTitle'>Info</div>
+                <div className='ProgressTitle'>Description</div>
+                <div className='ProgressTitle'>Shipping</div>
+                <div className='ProgressTitle'>Price</div>
+              </div>
+              <div className='IndicatorRow'>
+                <div className={completeCheck(item.image)}></div>
+                <div className={completeCheck(item.category)}></div>
+                <div className={completeCheck(item.description)}></div>
+                <div className={completeCheck(item.delivery)}></div>
+                <div className={completeCheck(item.price)}></div>
+              </div>
+            </div>
           </div>
         )
       })}
