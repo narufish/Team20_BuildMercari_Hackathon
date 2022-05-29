@@ -5,6 +5,9 @@ interface Item {
   name: string;
   category: string;
   image: string;
+  description: string;
+  delivery: string;
+  price: number;
 };
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
@@ -13,13 +16,16 @@ const server = process.env.API_URL || 'http://127.0.0.1:9000';
 interface Prop {
   reload?: boolean;
   onLoadCompleted?: () => void;
+  selectModeOn?: boolean;
+  checkList?: number[];
+  handleClick?:  (id: number, checked: boolean) => void;
 }
 
 export const ItemList: React.FC<Prop> = (props) => {
-  const { reload = true, onLoadCompleted } = props;
+  const { reload = true, onLoadCompleted, selectModeOn, checkList = [], handleClick } = props;
   const [items, setItems] = useState<Item[]>([])
   const fetchItems = () => {
-    fetch(server.concat('/items'),
+    fetch(server.concat('/drafts'),
       {
         method: 'GET',
         mode: 'cors',
@@ -31,7 +37,7 @@ export const ItemList: React.FC<Prop> = (props) => {
       .then(response => response.json())
       .then(data => {
         console.log('GET success:', data);
-        setItems(data.items);
+        setItems(data["draft items"]);
         onLoadCompleted && onLoadCompleted();
       })
       .catch(error => {
@@ -44,18 +50,57 @@ export const ItemList: React.FC<Prop> = (props) => {
       fetchItems();
     }
   }, [reload]);
-
+  
+  const checkVis = {
+    display: (selectModeOn ? 'block' : 'none'),
+  };
+  
   return (
     <div className='ItemGrid'>
       {items.map((item) => {
+        const isChecked: boolean = checkList.includes(item.id);
+        function completeCheck(value: string | number) {
+          if (value) {
+            return 'IndicatorOn';
+          }
+          return 'IndicatorOff';
+        }
         return (
           <div key={item.id} className='ItemList'>
-            <img src={server + "/image/" + item.image} />
-            <p>
-              <span>Name: {item.name}</span>
-              <br />
-              <span>Category: {item.category}</span>
-            </p>
+            <div className='ItemInfo'>
+              <input 
+                className='Selector'
+                id={String(item.id)}
+                name={item.name}
+                type='checkbox'
+                onChange={() => handleClick?.(item.id, !isChecked)}
+                defaultChecked={false}
+                style={checkVis}
+              />
+              <img src={server + "/draft_image/" + item.image} />
+              <p>
+                <span>Name: {item.name}</span>
+                <br />
+                <br/>
+                <span>Category: {item.category}</span>
+              </p>
+            </div>
+            <div className='ProgressBar'>
+              <div className='TitleRow'>
+                <div className='ProgressTitle'>Image</div>
+                <div className='ProgressTitle'>Info</div>
+                <div className='ProgressTitle'>Description</div>
+                <div className='ProgressTitle'>Shipping</div>
+                <div className='ProgressTitle'>Price</div>
+              </div>
+              <div className='IndicatorRow'>
+                <div className={completeCheck(item.image)}></div>
+                <div className={completeCheck(item.category)}></div>
+                <div className={completeCheck(item.description)}></div>
+                <div className={completeCheck(item.delivery)}></div>
+                <div className={completeCheck(item.price)}></div>
+              </div>
+            </div>
           </div>
         )
       })}

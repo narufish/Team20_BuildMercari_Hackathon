@@ -42,7 +42,7 @@ body{
   color: rgb(43, 43, 43);
   font-family: Graphik,-apple-system,system-ui,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
 }
-/*#222427*/
+
 .Listing {
   background-color: var(--front);
   border: 1px solid var(--border);
