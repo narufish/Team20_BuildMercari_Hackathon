@@ -14,3 +14,14 @@ This is Team 20's Hack Week repository.
 @kappanjoe
 
 @narufish
+
+### Technologies:
+
+Docker
+Docker Compose
+Python
+Uvicorn
+SQLite3
+TypeScript
+Node
+React
