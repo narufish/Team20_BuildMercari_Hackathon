@@ -17,11 +17,11 @@ This is Team 20's Hack Week repository.
 
 ### Technologies:
 
-Docker
-Docker Compose
-Python
-Uvicorn
-SQLite3
-TypeScript
-Node
+Docker,
+Docker Compose,
+Python,
+Uvicorn,
+SQLite3,
+TypeScript,
+Node,
 React
